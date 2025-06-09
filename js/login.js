@@ -3,13 +3,13 @@ if (loginForm) {
   loginForm.addEventListener('submit', function (e) {
     e.preventDefault();
 
-    const masp = document.getElementById('masp').value;
+    const email = document.getElementById('email').value;
     const senha = document.getElementById('senha').value;
 
     const usuarioSalvo = JSON.parse(localStorage.getItem('usuario'));
     console.log(usuarioSalvo);
 
-    if (!usuarioSalvo || usuarioSalvo.masp !== masp || usuarioSalvo.senha !== senha) {
+    if (!usuarioSalvo || usuarioSalvo.email !== email || usuarioSalvo.senha !== senha) {
       if (!usuarioSalvo) {
         alert('Usuário não encontrado. Redirecionando para o cadastro...');
         window.location.href = 'cadastro.html';
