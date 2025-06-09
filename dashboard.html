@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - Cardápio</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="dashboard-page">
+  <header>
+    <h1>Cardápio da Semana</h1>
+    <button id="logout-btn">Sair</button>
+  </header>
+
+  <main class="dashboard">
+    <!-- Lista de refeições cadastradas -->
+    <section id="cardapio-lista">
+      <h2>Refeições Cadastradas</h2>
+      <div id="lista-de-refeicoes">
+        <!-- Aqui, cada refeição será listada com opções de alterar e excluir -->
+      </div>
+    </section>
+
+    <!-- Formulário para inserir nova refeição -->
+    <section id="form-refeicao">
+      <h2>Nova Refeição</h2>
+      <form id="refeicao-form">
+        <label for="dia">Dia da Semana:</label>
+        <select id="dia" name="dia" required>
+          <option value="">Selecione o dia</option>
+          <option value="segunda-feira">Segunda-feira</option>
+          <option value="terça-feira">Terça-feira</option>
+          <option value="quarta-feira">Quarta-feira</option>
+          <option value="quinta-feira">Quinta-feira</option>
+          <option value="sexta-feira">Sexta-feira</option>
+          <option value="sábado">Sábado</option>
+        </select>
+
+        <label for="turno">Turno:</label>
+        <select id="turno" name="turno" required>
+          <option value="">Selecione o turno</option>
+          <option value="manha">manhã</option>
+          <option value="tarde">tarde</option>
+          <option value="noite">noite</option>
+        </select>
+
+        <label for="cardapio">Cardápio:</label>
+        <textarea id="cardapio" name="cardapio" rows="4" required></textarea>
+
+        <label for="img">Imagem do Prato:</label>
+        <input type="file" id="img" name="img" accept="image/*" required />
+        <input type="hidden" id="img-url" name="img-url" />
+
+        <label for="alt">Texto Alternativo:</label>
+        <input type="text" id="alt" name="alt" />
+
+        <button type="submit">Salvar</button>
+      </form>
+    </section>
+  </main>
+
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
