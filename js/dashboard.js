@@ -1,4 +1,4 @@
-const imgbbAPIKey = 'SUA_API_KEY_DO_IMGBB'; // Substitua por sua chave real
+const imgbbAPIKey = 'SUA_API_KEY_DO_IMGBB'; // Substitua pela sua chave real
 
 const fileInput = document.getElementById('img');
 const hiddenInputUrl = document.getElementById('img-url');
@@ -8,21 +8,31 @@ const logoutBtn = document.getElementById('logout-btn');
 
 let refeicoes = [];
 let idEditando = null;
-
+/*
 const token = sessionStorage.getItem('token');
 if (!token) {
   alert('Você precisa estar logado.');
   window.location.href = 'index.html';
+}*/
+const id_usuario = localStorage.getItem('id_usuario');
+if (!id_usuario) {
+  alert('Você precisa estar logado.');
+  window.location.href = 'index.html';
 }
 
-// Carregar pratos da cozinheira logada
+// Formata data no formato dd/mm/yyyy
+function formatarData(dataISO) {
+  const data = new Date(dataISO);
+  const dia = String(data.getDate()).padStart(2, '0');
+  const mes = String(data.getMonth() + 1).padStart(2, '0');
+  const ano = data.getFullYear();
+  return `${dia}/${mes}/${ano}`;
+}
+
+// Carregar pratos do usuário logado
 async function carregarRefeicoes() {
   try {
-    const response = await fetch('http://localhost:3000/pratos', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    const response = await fetch('http://localhost:3000/pratos');
     const data = await response.json();
     refeicoes = data;
     renderRefeicoes();
@@ -32,7 +42,7 @@ async function carregarRefeicoes() {
   }
 }
 
-// Renderizar os pratos
+// Renderiza lista de pratos na tela
 function renderRefeicoes() {
   listaDeRefeicoes.innerHTML = '';
   refeicoes.forEach(prato => {
@@ -40,7 +50,7 @@ function renderRefeicoes() {
     div.classList.add('cardapio-item');
     div.innerHTML = `
       <div>
-        <h3>${new Date(prato.dia).toLocaleDateString()}</h3>
+        <h3>${formatarData(prato.dia)}</h3>
         <p><strong>Turno:</strong> ${prato.turno}</p>
         <p><strong>Principal:</strong> ${prato.principal}</p>
         <p><strong>Sobremesa:</strong> ${prato.sobremesa}</p>
@@ -48,7 +58,7 @@ function renderRefeicoes() {
         ${prato.imagem ? `<img src="${prato.imagem}" alt="Imagem do prato" />` : ''}
       </div>
       <div>
-        <button onclick="editarRefeicao(${prato.id_prato})">Alterar</button>
+        <button onclick="editarRefeicao(event, ${prato.id_prato})">Alterar</button>
         <button onclick="excluirRefeicao(${prato.id_prato})">Excluir</button>
       </div>
     `;
@@ -56,53 +66,90 @@ function renderRefeicoes() {
   });
 }
 
-// Preencher o formulário para edição
-function editarRefeicao(id) {
+// Preenche formulário para edição de prato
+function editarRefeicao(event, id) {
+  event.preventDefault();
+
   const prato = refeicoes.find(p => p.id_prato === id);
+  if (!prato) return alert('Refeição não encontrada!');
+
+  document.querySelector('#form-refeicao h2').textContent = 'Editar Refeição';
+
+  // Mostra o campo de ID
+  document.getElementById('campo-id').style.display = "block";
+  document.getElementById('id-refeicao-editando').value = prato.id_prato;
+
   document.getElementById('dia').value = prato.dia.slice(0, 10);
   document.getElementById('turno').value = prato.turno;
   document.getElementById('principal').value = prato.principal;
   document.getElementById('sobremesa').value = prato.sobremesa;
   document.getElementById('bebida').value = prato.bebida;
   document.getElementById('img-url').value = prato.imagem || '';
+
   idEditando = id;
 }
 
+
 // Criar ou atualizar prato
-refeicaoForm.addEventListener('submit', async function (e) {
+refeicaoForm.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  const dia = document.getElementById('dia').value;
+  const id = document.getElementById('id-refeicao-editando').value || null;
+  const dia = document.getElementById('dia').value; // Data do input
   const turno = document.getElementById('turno').value;
   const principal = document.getElementById('principal').value;
   const sobremesa = document.getElementById('sobremesa').value;
   const bebida = document.getElementById('bebida').value;
   const imagem = document.getElementById('img-url').value;
 
-  const prato = { dia, turno, principal, sobremesa, bebida, imagem };
+  const id_usuario = localStorage.getItem('id_usuario');
+  if (!id_usuario) {
+    alert('Usuário não autenticado. Faça login antes.');
+    return;
+  }
+
+  // Converter a data para o formato ISO (caso não esteja nesse formato)
+  const dataFormatada = new Date(dia).toISOString(); 
+
+  // Montar o objeto 'prato'
+  let prato = { 
+    dia: dataFormatada,
+    turno,
+    principal,
+    sobremesa,
+    bebida,
+    imagem,
+    id_usuario: Number(id_usuario)
+  };
+
+  // Adicionar o id_prato caso seja uma atualização (PUT)
+  if (id && !isNaN(id)) {
+    prato = { id_prato: Number(id), ...prato }; // Só inclui o id_prato se for um número válido
+  }
 
   try {
-    const url = idEditando
-      ? `http://localhost:3000/pratos/${idEditando}`
-      : 'http://localhost:3000/pratos';
+    // Determina a URL e o método (POST ou PUT)
+    const url = id ? `http://localhost:3000/pratos/${id}` : 'http://localhost:3000/pratos';
+    const method = id ? 'PUT' : 'POST';
 
-    const method = idEditando ? 'PUT' : 'POST';
+    // Exibe o método e URL no console
+    console.log(`Método: ${method}`);
+    console.log(`URL: ${url}`);
+    console.log('Dados do prato:', prato);
 
+    // Faz a requisição
     const response = await fetch(url, {
       method,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(prato)
     });
 
-    if (!response.ok) {
-      throw new Error('Erro na requisição');
-    }
+    if (!response.ok) throw new Error('Erro na requisição');
 
     refeicaoForm.reset();
-    idEditando = null;
+    document.getElementById('id-refeicao-editando').value = '';
+    document.querySelector('#form-refeicao h2').textContent = 'Nova Refeição';
+
     await carregarRefeicoes();
     alert('Prato salvo com sucesso!');
   } catch (error) {
@@ -111,21 +158,17 @@ refeicaoForm.addEventListener('submit', async function (e) {
   }
 });
 
+
 // Excluir prato
 async function excluirRefeicao(id) {
   if (!confirm('Tem certeza que deseja excluir este prato?')) return;
 
   try {
     const response = await fetch(`http://localhost:3000/pratos/${id}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      method: 'DELETE'
     });
 
-    if (!response.ok) {
-      throw new Error('Erro ao excluir prato');
-    }
+    if (!response.ok) throw new Error('Erro ao excluir prato');
 
     await carregarRefeicoes();
     alert('Prato excluído com sucesso!');
@@ -136,8 +179,8 @@ async function excluirRefeicao(id) {
 }
 
 // Upload de imagem para ImgBB
-fileInput.addEventListener('change', async function () {
-  const file = this.files[0];
+fileInput.addEventListener('change', async () => {
+  const file = fileInput.files[0];
   if (!file) return;
 
   const formData = new FormData();
@@ -148,7 +191,6 @@ fileInput.addEventListener('change', async function () {
       method: 'POST',
       body: formData
     });
-
     const result = await response.json();
 
     if (result.success) {
@@ -163,13 +205,14 @@ fileInput.addEventListener('change', async function () {
   }
 });
 
-// 🚪 Logout
-if (logoutBtn) {
-  logoutBtn.addEventListener('click', () => {
-    sessionStorage.removeItem('token');
-    window.location.href = 'index.html';
-  });
-}
+// Logout
+logoutBtn?.addEventListener('click', () => {
+  //sessionStorage.removeItem('token');
+  localStorage.removeItem('id_usuario');
+  localStorage.removeItem('nome_usuario');
+  localStorage.removeItem('email_usuario');
+  window.location.href = 'index.html';
+});
 
-// Inicializar
+// Inicializa carregando os pratos
 carregarRefeicoes();

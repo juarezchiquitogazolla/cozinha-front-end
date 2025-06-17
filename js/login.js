@@ -25,8 +25,11 @@ if (loginForm) {
           return;
         }
 
-        // Armazena token e redireciona
-        sessionStorage.setItem('token', data.token);
+        // Armazena os dados corretos no localStorage
+        localStorage.setItem('id_usuario', data.id_usuario);
+        localStorage.setItem('nome_usuario', data.nome);
+        localStorage.setItem('email_usuario', data.email);
+
         alert('Login realizado com sucesso!');
         window.location.href = 'dashboard.html';
       })
