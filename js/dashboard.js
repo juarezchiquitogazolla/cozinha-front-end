@@ -1,4 +1,4 @@
-const imgbbAPIKey = 'SUA_API_KEY_DO_IMGBB'; // Substitua pela sua chave real
+const imgbbAPIKey = '9a38d36d162032e65231552d4af958fe'; // Substitua pela sua chave real
 
 const fileInput = document.getElementById('img');
 const hiddenInputUrl = document.getElementById('img-url');
@@ -23,11 +23,13 @@ if (!id_usuario) {
 // Formata data no formato dd/mm/yyyy
 function formatarData(dataISO) {
   const data = new Date(dataISO);
-  const dia = String(data.getDate()).padStart(2, '0');
-  const mes = String(data.getMonth() + 1).padStart(2, '0');
-  const ano = data.getFullYear();
+  const dia = String(data.getUTCDate()).padStart(2, '0');
+  const mes = String(data.getUTCMonth() + 1).padStart(2, '0');
+  const ano = data.getUTCFullYear();
   return `${dia}/${mes}/${ano}`;
 }
+
+
 
 // Carregar pratos do usuário logado
 async function carregarRefeicoes() {
@@ -69,6 +71,7 @@ function renderRefeicoes() {
 // Preenche formulário para edição de prato
 function editarRefeicao(event, id) {
   event.preventDefault();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 
   const prato = refeicoes.find(p => p.id_prato === id);
   if (!prato) return alert('Refeição não encontrada!');
